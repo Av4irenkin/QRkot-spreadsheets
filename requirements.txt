@@ -6,6 +6,7 @@
 #
 
 -i https://pypi.org/simple
+aiogoogle==4.2.0
 aiosqlite==0.17.0
 alembic==1.7.7
 annotated-types==0.6.0
@@ -30,6 +31,9 @@ fastapi-users-db-sqlalchemy==6.0.1
 filelock==3.14.0
 flake8==4.0.1
 freezegun==1.2.1
+google-api-python-client==2.86.0
+google-auth-httplib2==0.1.0
+google-auth-oauthlib==1.0.0
 # greenlet==3.0.3
 h11==0.13.0
 # httptools==0.6.1

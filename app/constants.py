@@ -1,0 +1,13 @@
+APP_TITTLE = 'Благотворительный фонд поддержки котиков QRKot'
+DESCRIPTION = 'Сервис для поддержки котиков'
+MIN_LENGTH_NAME = 5
+MAX_LENGTH_NAME = 100
+MIN_LENGTH_DESCRIPTION = 10
+MIN_DONATION_AMOUNT = 1
+CHARITY_PROJECT_ROUTER_PREFIX = '/charity_project'
+CHARITY_PROJECT_ROUTER_TAG = 'charity_projects'
+DONATION_ROUTER_PREFIX = '/donation'
+DONATION_ROUTER_TAG = 'donations'
+GOOGLE_ROUTER_PREFIX = '/google'
+GOOGLE_ROUTER = 'Google'
+LIFETIME_SECONDS = 3600
