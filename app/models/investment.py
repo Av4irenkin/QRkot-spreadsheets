@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy import DateTime, Boolean, Integer, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.db import Common
+from app.models.base import Common
 
 
 class Investment(Common):
