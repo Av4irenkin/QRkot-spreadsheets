@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from aiogoogle import Aiogoogle
+from fastapi import HTTPException, status
 
 from app.core.config import settings
 from app.models.charity_project import CharityProject
@@ -15,8 +16,7 @@ TABLE_HEADER = [
 ]
 ROWS_ERROR = 'Недостаточно строк в таблице: нужно {}, доступно {}'
 COLUMNS_ERROR = 'Недостаточно колонок в таблице: нужно {}, доступно {}'
-FIRST_CELL = 'A1'
-UPDATE_RANGE = 'A1:C{}'
+RANGE = 'A1:{}'
 
 
 async def create_spreadsheets(wrapper_services: Aiogoogle) -> str:
@@ -63,12 +63,10 @@ async def update_spreadsheets_value(
         wrapper_services
     )
     all_rows = [
-        [
-            TABLE_HEADER[0][0],
-            TABLE_HEADER[0][1].format(datetime.now().strftime(FORMAT))
-        ],
-        TABLE_HEADER[1],
-        TABLE_HEADER[2]
+        [row[0], row[1].format(
+            datetime.now().strftime(FORMAT)
+        )] if i == 0 else row
+        for i, row in enumerate(TABLE_HEADER)
     ] + [
         [
             project.name,
@@ -77,24 +75,30 @@ async def update_spreadsheets_value(
         ]
         for project in projects
     ]
-    if len(all_rows) > row_count:
-        raise ValueError(ROWS_ERROR.format(len(all_rows), row_count))
-    if len(TABLE_HEADER[2]) > column_count:
-        raise ValueError(COLUMNS_ERROR.format(
-            len(TABLE_HEADER[2]),
-            column_count
-        ))
+    total_rows = len(all_rows)
+    total_cols = max(len(row) for row in all_rows)
+    if total_rows > row_count:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ROWS_ERROR.format(total_rows, row_count)
+        )
+    if total_cols > column_count:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=COLUMNS_ERROR.format(total_cols, column_count)
+        )
+    last_cell = f'{chr(64 + total_cols)}{total_rows}'
     await wrapper_services.as_service_account(
         service.spreadsheets.values.clear(
             spreadsheetId=spreadsheet_id,
-            range=UPDATE_RANGE.format(len(all_rows)),
+            range=RANGE.format(last_cell),
             json={}
         )
     )
     await wrapper_services.as_service_account(
         service.spreadsheets.values.update(
             spreadsheetId=spreadsheet_id,
-            range=FIRST_CELL,
+            range=RANGE.format(last_cell),
             valueInputOption=VALUE_INPUT_OPTION,
             json={
                 'majorDimension': 'ROWS',

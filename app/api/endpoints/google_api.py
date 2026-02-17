@@ -1,5 +1,5 @@
 from aiogoogle import Aiogoogle
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -26,19 +26,13 @@ async def create_google_sheets_report(
     wrapper_services: Aiogoogle = Depends(get_service)
 ):
     projects = await get_projects_by_completion_rate(session)
-    try:
-        spreadsheet_url = await create_spreadsheets(wrapper_services)
-        await set_user_permissions(settings.spreadsheet_id, wrapper_services)
-        await update_spreadsheets_value(
-            settings.spreadsheet_id,
-            projects,
-            wrapper_services
-        )
-    except Exception as error:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(error)
-        )
+    spreadsheet_url = await create_spreadsheets(wrapper_services)
+    await set_user_permissions(settings.spreadsheet_id, wrapper_services)
+    await update_spreadsheets_value(
+        settings.spreadsheet_id,
+        projects,
+        wrapper_services
+    )
     return {
         'spreadsheet_url': spreadsheet_url
     }
