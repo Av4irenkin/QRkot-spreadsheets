@@ -15,7 +15,6 @@ TABLE_HEADER = [
 ]
 ROWS_ERROR = 'Недостаточно строк в таблице: нужно {}, доступно {}'
 COLUMNS_ERROR = 'Недостаточно колонок в таблице: нужно {}, доступно {}'
-RANGE = 'A1:{}'
 
 
 async def create_spreadsheets(wrapper_services: Aiogoogle) -> str:
@@ -51,15 +50,6 @@ async def get_spreadsheet_dimensions(
     return sheet_properties['rowCount'], sheet_properties['columnCount']
 
 
-def _get_column_letter(col_num: int) -> str:
-    result = ''
-    while col_num > 0:
-        col_num -= 1
-        result = chr(col_num % 26 + 65) + result
-        col_num //= 26
-    return result
-
-
 async def update_spreadsheets_value(
     spreadsheet_id: str,
     projects: list[CharityProject],
@@ -90,16 +80,9 @@ async def update_spreadsheets_value(
     if total_cols > column_count:
         raise ValueError(COLUMNS_ERROR.format(total_cols, column_count))
     await wrapper_services.as_service_account(
-        service.spreadsheets.values.clear(
-            spreadsheetId=spreadsheet_id,
-            range=f'R1C1:R{total_rows}C{total_cols}',
-            json={}
-        )
-    )
-    await wrapper_services.as_service_account(
         service.spreadsheets.values.update(
             spreadsheetId=spreadsheet_id,
-            range=f'A1:{_get_column_letter(total_cols)}{total_rows}',
+            range=f'R1C1:R{total_rows}C{total_cols}',
             valueInputOption=VALUE_INPUT_OPTION,
             json={
                 'majorDimension': 'ROWS',

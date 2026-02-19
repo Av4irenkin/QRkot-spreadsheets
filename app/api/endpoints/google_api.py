@@ -1,5 +1,4 @@
 from aiogoogle import Aiogoogle
-from aiogoogle.excs import HTTPError
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,8 +13,6 @@ from app.services.google_api import (
     update_spreadsheets_value
 )
 
-
-GOOGLE_API_ERROR = 'Ошибка Google API: {}'
 
 router = APIRouter()
 
@@ -41,13 +38,8 @@ async def create_google_sheets_report(
         )
     except ValueError as error:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=error
-        )
-    except HTTPError as error:
-        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=GOOGLE_API_ERROR.format(error)
+            detail=str(error)
         )
     return {
         'spreadsheet_url': spreadsheet_url
