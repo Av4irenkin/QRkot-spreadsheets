@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import DateTime, Boolean, Integer, CheckConstraint
-from sqlalchemy.orm import Mapped, mapped_column, declared_attr
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
 
@@ -10,11 +10,6 @@ from app.core.db import Base
 class Investment(Base):
     __abstract__ = True
 
-    @declared_attr
-    def __tablename__(cls):
-        return cls.__name__.lower()
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     full_amount: Mapped[int] = mapped_column(Integer, nullable=False)
     invested_amount: Mapped[int] = mapped_column(
         Integer,
@@ -57,10 +52,9 @@ class Investment(Base):
             self.close_date = datetime.now()
 
     def __repr__(self) -> str:
-        return ('{} id={}, full_amount={}, invested_amount={}, '
+        return ('{}, full_amount={}, invested_amount={}, '
                 'fully_invested={}, create_date={}, close_date={}').format(
-            self.__class__.__name__,
-            self.id,
+            super().__repr__(),
             self.full_amount,
             self.invested_amount,
             self.fully_invested,

@@ -1,11 +1,26 @@
+from sqlalchemy import Integer
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    mapped_column,
+    declared_attr
+)
 
 from app.core.config import settings
 
 
 class Base(DeclarativeBase):
-    pass
+    __abstract__ = True
+
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower()
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    def __repr__(self) -> str:
+        return f'{type(self)} id={self.id}'
 
 
 engine = create_async_engine(settings.database_url, echo=True)

@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from aiogoogle import Aiogoogle
-from fastapi import HTTPException, status
 
 from app.core.config import settings
 from app.models.charity_project import CharityProject
@@ -52,6 +51,15 @@ async def get_spreadsheet_dimensions(
     return sheet_properties['rowCount'], sheet_properties['columnCount']
 
 
+def _get_column_letter(col_num: int) -> str:
+    result = ''
+    while col_num > 0:
+        col_num -= 1
+        result = chr(col_num % 26 + 65) + result
+        col_num //= 26
+    return result
+
+
 async def update_spreadsheets_value(
     spreadsheet_id: str,
     projects: list[CharityProject],
@@ -78,27 +86,20 @@ async def update_spreadsheets_value(
     total_rows = len(all_rows)
     total_cols = max(len(row) for row in all_rows)
     if total_rows > row_count:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ROWS_ERROR.format(total_rows, row_count)
-        )
+        raise ValueError(ROWS_ERROR.format(total_rows, row_count))
     if total_cols > column_count:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=COLUMNS_ERROR.format(total_cols, column_count)
-        )
-    last_cell = f'{chr(64 + total_cols)}{total_rows}'
+        raise ValueError(COLUMNS_ERROR.format(total_cols, column_count))
     await wrapper_services.as_service_account(
         service.spreadsheets.values.clear(
             spreadsheetId=spreadsheet_id,
-            range=RANGE.format(last_cell),
+            range=f'R1C1:R{total_rows}C{total_cols}',
             json={}
         )
     )
     await wrapper_services.as_service_account(
         service.spreadsheets.values.update(
             spreadsheetId=spreadsheet_id,
-            range=RANGE.format(last_cell),
+            range=f'A1:{_get_column_letter(total_cols)}{total_rows}',
             valueInputOption=VALUE_INPUT_OPTION,
             json={
                 'majorDimension': 'ROWS',
